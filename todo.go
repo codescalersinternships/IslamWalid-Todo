@@ -25,7 +25,7 @@ const (
 var db *gorm.DB
 
 type Task struct {
-    ID uint64       `json:"id"`
+    ID int          `json:"id"`
     Title string    `json:"title"`
     Completed bool  `json:"completed"`
 }
@@ -45,15 +45,17 @@ func InitDB() {
 func RegisterHandlers(router *mux.Router) {
     router.HandleFunc("/todo", GetAllTasks).Methods("GET")
     router.HandleFunc("/todo", AddTask).Methods("POST")
+    router.HandleFunc("/todo", ModifyTask).Methods("PATCH")
     router.HandleFunc("/todo/{id}", GetTaskByID).Methods("GET")
+    router.HandleFunc("/todo/{id}", DeleteTaskByID).Methods("DELETE")
 }
 
-var GetAllTasks = func (writer http.ResponseWriter, req *http.Request) {
+var GetAllTasks = func (w http.ResponseWriter, req *http.Request) {
     tasks := make([]Task, 0)
 
     db.Find(&tasks)
     tasksJson, _ := json.MarshalIndent(tasks, "", JsonIndent)
-    httpResponse(writer, tasksJson, http.StatusOK)
+    httpResponse(w, tasksJson, http.StatusOK)
 }
 
 var AddTask = func (w http.ResponseWriter, req *http.Request) {
@@ -61,7 +63,8 @@ var AddTask = func (w http.ResponseWriter, req *http.Request) {
  
     json.NewDecoder(req.Body).Decode(&newTask)
 
-    if db.First(&Task{}, newTask.ID).Error == nil {
+    _, isExist := DbIsExist(newTask.ID)
+    if isExist {
         http.Error(w, fmt.Sprintf(IDExists, newTask.ID), http.StatusConflict)
     } else {
         db.Create(&newTask)
@@ -71,16 +74,45 @@ var AddTask = func (w http.ResponseWriter, req *http.Request) {
 }
 
 var GetTaskByID = func (w http.ResponseWriter, req *http.Request) {
-    var resultTask Task
-
     params := mux.Vars(req)
     id, _ := strconv.Atoi(params["id"])
 
-    if db.First(&resultTask, id).Error == nil {
-        resultJson, _ := json.MarshalIndent(resultTask, "", JsonIndent)
+    task, isExist := DbIsExist(id)
+    if isExist {
+        resultJson, _ := json.MarshalIndent(task, "", JsonIndent)
         httpResponse(w, resultJson, http.StatusOK)
     } else {
         http.Error(w, fmt.Sprintf(IDNotFound, id), http.StatusNotFound)
+    }
+}
+
+var ModifyTask = func (w http.ResponseWriter, req *http.Request) {
+    var newTask Task
+
+    json.NewDecoder(req.Body).Decode(&newTask)
+
+    task, isExist := DbIsExist(newTask.ID)
+    if isExist {
+        task.Title = newTask.Title
+        task.Completed = newTask.Completed
+        db.Save(task)
+        resultJson, _ := json.MarshalIndent(task, "", JsonIndent)
+        httpResponse(w, resultJson, http.StatusOK)
+    } else {
+        http.Error(w, fmt.Sprintf(IDNotFound, newTask.ID), http.StatusNotFound)
+    }
+}
+
+var DeleteTaskByID = func (w http.ResponseWriter, req *http.Request)  {
+    params := mux.Vars(req)
+    id, _ := strconv.Atoi(params["id"])
+
+    task, isExist := DbIsExist(id)
+    if isExist {
+        db.Delete(task)
+        w.WriteHeader(http.StatusOK)
+    } else {
+        w.WriteHeader(http.StatusNotFound)
     }
 }
 
@@ -88,4 +120,14 @@ func httpResponse(w http.ResponseWriter, data []byte, statusCode int)  {
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(statusCode)
     w.Write(data)
+}
+
+func DbIsExist(id int) (*Task, bool) {
+    var task Task
+    err := db.First(&task, id)
+    if err.Error == nil {
+        return &task, true
+    } else {
+        return nil, false
+    }
 }
