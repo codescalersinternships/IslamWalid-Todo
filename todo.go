@@ -18,6 +18,7 @@ const (
 
     IDExists = "Task with ID %d already exists\n"
     IDNotFound = "Task with ID %d was not found\n"
+    BadRequest = "Request is not valid\n"
 
     dbFile = "./database/todo.db"
 )
@@ -61,7 +62,11 @@ var GetAllTasks = func (w http.ResponseWriter, req *http.Request) {
 var AddTask = func (w http.ResponseWriter, req *http.Request) {
     var newTask Task
  
-    json.NewDecoder(req.Body).Decode(&newTask)
+    err := json.NewDecoder(req.Body).Decode(&newTask)
+    if err != nil {
+        http.Error(w, BadRequest, http.StatusBadRequest)
+        return
+    }
 
     _, isExist := DbIsExist(newTask.ID)
     if isExist {
@@ -75,7 +80,11 @@ var AddTask = func (w http.ResponseWriter, req *http.Request) {
 
 var GetTaskByID = func (w http.ResponseWriter, req *http.Request) {
     params := mux.Vars(req)
-    id, _ := strconv.Atoi(params["id"])
+    id, err := strconv.Atoi(params["id"])
+    if err != nil {
+        http.Error(w, BadRequest, http.StatusBadRequest)
+        return
+    }
 
     task, isExist := DbIsExist(id)
     if isExist {
@@ -89,7 +98,11 @@ var GetTaskByID = func (w http.ResponseWriter, req *http.Request) {
 var ModifyTask = func (w http.ResponseWriter, req *http.Request) {
     var newTask Task
 
-    json.NewDecoder(req.Body).Decode(&newTask)
+    err := json.NewDecoder(req.Body).Decode(&newTask)
+    if err != nil {
+        http.Error(w, BadRequest, http.StatusBadRequest)
+        return
+    }
 
     task, isExist := DbIsExist(newTask.ID)
     if isExist {
@@ -105,7 +118,11 @@ var ModifyTask = func (w http.ResponseWriter, req *http.Request) {
 
 var DeleteTaskByID = func (w http.ResponseWriter, req *http.Request)  {
     params := mux.Vars(req)
-    id, _ := strconv.Atoi(params["id"])
+    id, err := strconv.Atoi(params["id"])
+    if err != nil {
+        http.Error(w, BadRequest, http.StatusBadRequest)
+        return
+    }
 
     task, isExist := DbIsExist(id)
     if isExist {

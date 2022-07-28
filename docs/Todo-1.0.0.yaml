@@ -20,7 +20,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Task'
     post:
-      summary: Add Task
+      summary: Add a todo task
       requestBody:
         content:
           application/json:
@@ -34,11 +34,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Task'
+        "400":
+          description: Invalid input or bad Json syntax.
         "409":
           description: Task already exists.
+    patch:
+      summary: Update a todo task by id.
+      requestBody:
+        description: The new Task with the updated fields.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Task'
+      responses:
+        "200":
+          description: The request received and understood and item updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        "400":
+          description: Server did not understand the request due to bad syntax.
+        "404":
+          description: The specified task ID is not found.
   /todo/{taskId}:
     get:
-      description: Get a todo task by id.
+      summary: Get a todo task by id.
       parameters:
       - name: taskId
         in: path
@@ -61,7 +82,7 @@ paths:
         "404":
           description: The specified task ID is not found.
     delete:
-      summary: Delete a todo task by id
+      summary: Delete a todo task by id.
       parameters:
       - name: taskId
         in: path
@@ -74,11 +95,11 @@ paths:
           example: 1
       responses:
         "200":
-          description: the request received and understood and item deleted
+          description: The request received and understood and item deleted.
         "400":
-          description: did not understand the request due to bad syntax
+          description: Server did not understand the request due to bad syntax.
         "404":
-          description: not found
+          description: The specified task ID is not found.
 components:
   schemas:
     Task:
