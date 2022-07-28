@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"path"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -35,10 +34,11 @@ type Task struct {
 }
 
 func main() {
-    app := TodoServer{}
+    app := TodoServer{
+    	dbFile: "DP_FILE.db",
+    }
     router := mux.NewRouter()
     err := app.InitDB()
-    app.dbFile = path.Join("database", "todo.db")
 
     if err != nil {
         panic(err)
@@ -86,8 +86,6 @@ func (app *TodoServer) AddTask (w http.ResponseWriter, req *http.Request) {
         http.Error(w, BadRequest, http.StatusBadRequest)
         return
     }
-
-    fmt.Println(newTask)
 
     err = validateTaskFields(&newTask)
     if err != nil {
