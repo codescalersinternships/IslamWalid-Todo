@@ -33,14 +33,25 @@ type Task struct {
 
 func main() {
     router := mux.NewRouter()
-    InitDB()
+    err := InitDB()
+
+    if err != nil {
+        panic(err)
+    }
+
     RegisterHandlers(router)
     http.ListenAndServe(Port, router)
 }
 
-func InitDB() {
-    db, _ = gorm.Open(sqlite.Open(dbFile), &gorm.Config{})
+func InitDB() error {
+    var err error
+    db, err = gorm.Open(sqlite.Open(dbFile), &gorm.Config{})
+    if err != nil {
+        return err
+    }
+
     db.AutoMigrate(&Task{})
+    return nil
 }
 
 func RegisterHandlers(router *mux.Router) {
@@ -54,7 +65,11 @@ func RegisterHandlers(router *mux.Router) {
 var GetAllTasks = func (w http.ResponseWriter, req *http.Request) {
     tasks := make([]Task, 0)
 
-    db.Find(&tasks)
+    err := db.Find(&tasks).Error
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+    }
+
     tasksJson, _ := json.MarshalIndent(tasks, "", JsonIndent)
     httpResponse(w, tasksJson, http.StatusOK)
 }
@@ -71,11 +86,17 @@ var AddTask = func (w http.ResponseWriter, req *http.Request) {
     _, isExist := DbIsExist(newTask.ID)
     if isExist {
         http.Error(w, fmt.Sprintf(IDExists, newTask.ID), http.StatusConflict)
-    } else {
-        db.Create(&newTask)
-        newTaskJson, _ := json.MarshalIndent(newTask, "", JsonIndent)
-        httpResponse(w, newTaskJson, http.StatusCreated)
+        return
     }
+
+    err = db.Create(&newTask).Error
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    newTaskJson, _ := json.MarshalIndent(newTask, "", JsonIndent)
+    httpResponse(w, newTaskJson, http.StatusCreated)
 }
 
 var GetTaskByID = func (w http.ResponseWriter, req *http.Request) {
@@ -87,12 +108,13 @@ var GetTaskByID = func (w http.ResponseWriter, req *http.Request) {
     }
 
     task, isExist := DbIsExist(id)
-    if isExist {
-        resultJson, _ := json.MarshalIndent(task, "", JsonIndent)
-        httpResponse(w, resultJson, http.StatusOK)
-    } else {
+    if !isExist {
         http.Error(w, fmt.Sprintf(IDNotFound, id), http.StatusNotFound)
+        return
     }
+
+    resultJson, _ := json.MarshalIndent(task, "", JsonIndent)
+    httpResponse(w, resultJson, http.StatusOK)
 }
 
 var ModifyTask = func (w http.ResponseWriter, req *http.Request) {
@@ -105,15 +127,21 @@ var ModifyTask = func (w http.ResponseWriter, req *http.Request) {
     }
 
     task, isExist := DbIsExist(newTask.ID)
-    if isExist {
-        task.Title = newTask.Title
-        task.Completed = newTask.Completed
-        db.Save(task)
-        resultJson, _ := json.MarshalIndent(task, "", JsonIndent)
-        httpResponse(w, resultJson, http.StatusOK)
-    } else {
+    if !isExist {
         http.Error(w, fmt.Sprintf(IDNotFound, newTask.ID), http.StatusNotFound)
+        return
     }
+
+    task.Title = newTask.Title
+    task.Completed = newTask.Completed
+    err = db.Save(task).Error
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    resultJson, _ := json.MarshalIndent(task, "", JsonIndent)
+    httpResponse(w, resultJson, http.StatusOK)
 }
 
 var DeleteTaskByID = func (w http.ResponseWriter, req *http.Request)  {
@@ -125,12 +153,17 @@ var DeleteTaskByID = func (w http.ResponseWriter, req *http.Request)  {
     }
 
     task, isExist := DbIsExist(id)
-    if isExist {
-        db.Delete(task)
-        w.WriteHeader(http.StatusOK)
-    } else {
-        w.WriteHeader(http.StatusNotFound)
+    if !isExist {
+        http.Error(w, fmt.Sprintf(IDNotFound, id), http.StatusNotFound)
     }
+
+    err = db.Delete(task).Error
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.WriteHeader(http.StatusOK)
 }
 
 func httpResponse(w http.ResponseWriter, data []byte, statusCode int)  {

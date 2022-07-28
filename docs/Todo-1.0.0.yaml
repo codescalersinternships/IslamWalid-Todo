@@ -19,6 +19,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Task'
+        "500":
+          description: Error due to any server failure
     post:
       summary: Add a todo task
       requestBody:
@@ -38,6 +40,8 @@ paths:
           description: Invalid input or bad Json syntax.
         "409":
           description: Task already exists.
+        "500":
+          description: Error due to any server failure
     patch:
       summary: Update a todo task by id.
       requestBody:
@@ -57,6 +61,8 @@ paths:
           description: Server did not understand the request due to bad syntax.
         "404":
           description: The specified task ID is not found.
+        "500":
+          description: Error due to any server failure
   /todo/{taskId}:
     get:
       summary: Get a todo task by id.
@@ -81,6 +87,8 @@ paths:
           description: The specified task ID is invalid (not a number).
         "404":
           description: The specified task ID is not found.
+        "500":
+          description: Error due to any server failure
     delete:
       summary: Delete a todo task by id.
       parameters:
@@ -100,6 +108,8 @@ paths:
           description: Server did not understand the request due to bad syntax.
         "404":
           description: The specified task ID is not found.
+        "500":
+          description: Error due to any server failure
 components:
   schemas:
     Task:
