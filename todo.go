@@ -87,13 +87,13 @@ func (app *TodoServer) AddTask (w http.ResponseWriter, req *http.Request) {
         return
     }
 
+    fmt.Println(newTask)
+
     err = validateTaskFields(&newTask)
     if err != nil {
         http.Error(w, err.Error(), http.StatusBadRequest)
         return
     }
-
-    fmt.Println(newTask)
 
     _, isExist := app.dbIsExist(newTask.ID)
     if isExist {

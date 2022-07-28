@@ -122,6 +122,7 @@ components:
         id:
           type: integer
           format: int64
+          minimum: 1
         title:
           type: string
           description: task title
