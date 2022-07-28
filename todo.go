@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"path"
@@ -28,7 +29,7 @@ type TodoServer struct {
 }
 
 type Task struct {
-    ID int          `json:"id"`
+    ID uint64          `json:"id"`
     Title string    `json:"title"`
     Completed bool  `json:"completed"`
 }
@@ -86,6 +87,14 @@ func (app *TodoServer) AddTask (w http.ResponseWriter, req *http.Request) {
         return
     }
 
+    err = validateTaskFields(&newTask)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+
+    fmt.Println(newTask)
+
     _, isExist := app.dbIsExist(newTask.ID)
     if isExist {
         http.Error(w, fmt.Sprintf(IDExists, newTask.ID), http.StatusConflict)
@@ -104,7 +113,7 @@ func (app *TodoServer) AddTask (w http.ResponseWriter, req *http.Request) {
 
 func (app *TodoServer) GetTaskByID (w http.ResponseWriter, req *http.Request) {
     params := mux.Vars(req)
-    id, err := strconv.Atoi(params["id"])
+    id, err := strconv.ParseUint(params["id"], 10, 64)
     if err != nil {
         http.Error(w, BadRequest, http.StatusBadRequest)
         return
@@ -129,6 +138,12 @@ func (app *TodoServer) ModifyTask (w http.ResponseWriter, req *http.Request) {
         return
     }
 
+    err = validateTaskFields(&newTask)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+
     task, isExist := app.dbIsExist(newTask.ID)
     if !isExist {
         http.Error(w, fmt.Sprintf(IDNotFound, newTask.ID), http.StatusNotFound)
@@ -149,7 +164,7 @@ func (app *TodoServer) ModifyTask (w http.ResponseWriter, req *http.Request) {
 
 func (app *TodoServer) DeleteTaskByID (w http.ResponseWriter, req *http.Request)  {
     params := mux.Vars(req)
-    id, err := strconv.Atoi(params["id"])
+    id, err := strconv.ParseUint(params["id"], 10, 64)
     if err != nil {
         http.Error(w, BadRequest, http.StatusBadRequest)
         return
@@ -169,7 +184,7 @@ func (app *TodoServer) DeleteTaskByID (w http.ResponseWriter, req *http.Request)
     w.WriteHeader(http.StatusOK)
 }
 
-func (app *TodoServer) dbIsExist(id int) (*Task, bool) {
+func (app *TodoServer) dbIsExist(id uint64) (*Task, bool) {
     var task Task
     err := app.db.First(&task, id)
     if err.Error == nil {
@@ -183,4 +198,11 @@ func httpResponse(w http.ResponseWriter, data []byte, statusCode int)  {
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(statusCode)
     w.Write(data)
+}
+
+func validateTaskFields(t *Task) error {
+    if t.ID == 0 || len(t.Title) == 0 {
+        return errors.New(BadRequest)
+    }
+    return nil
 }
