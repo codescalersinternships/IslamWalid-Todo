@@ -20,22 +20,24 @@ const (
     IDExists = "Task with ID %d already exists\n"
     IDNotFound = "Task with ID %d was not found\n"
     BadRequest = "Request is not valid\n"
+
+    dbFile = "DB_FILE.db"
 )
 
 type TodoServer struct {
     db *gorm.DB
-    dbFile string
+    dbFilePath string
 }
 
 type Task struct {
-    ID uint64          `json:"id"`
+    ID uint64       `json:"id"`
     Title string    `json:"title"`
     Completed bool  `json:"completed"`
 }
 
 func main() {
     app := TodoServer{
-    	dbFile: "DP_FILE.db",
+    	dbFilePath: dbFile,
     }
     router := mux.NewRouter()
     err := app.InitDB()
@@ -49,7 +51,7 @@ func main() {
 }
 
 func (app *TodoServer) InitDB() error {
-    db, err := gorm.Open(sqlite.Open(app.dbFile), &gorm.Config{})
+    db, err := gorm.Open(sqlite.Open(app.dbFilePath), &gorm.Config{})
     if err != nil {
         return err
     }
@@ -66,7 +68,7 @@ func (app *TodoServer) RegisterHandlers(router *mux.Router) {
     router.HandleFunc("/todo/{id}", app.DeleteTaskByID).Methods("DELETE")
 }
 
-func (app *TodoServer) GetAllTasks (w http.ResponseWriter, req *http.Request) {
+func (app *TodoServer) GetAllTasks(w http.ResponseWriter, req *http.Request) {
     tasks := make([]Task, 0)
 
     err := app.db.Find(&tasks).Error
@@ -78,7 +80,7 @@ func (app *TodoServer) GetAllTasks (w http.ResponseWriter, req *http.Request) {
     httpResponse(w, tasksJson, http.StatusOK)
 }
 
-func (app *TodoServer) AddTask (w http.ResponseWriter, req *http.Request) {
+func (app *TodoServer) AddTask(w http.ResponseWriter, req *http.Request) {
     var newTask Task
  
     err := json.NewDecoder(req.Body).Decode(&newTask)
@@ -109,7 +111,7 @@ func (app *TodoServer) AddTask (w http.ResponseWriter, req *http.Request) {
     httpResponse(w, newTaskJson, http.StatusCreated)
 }
 
-func (app *TodoServer) GetTaskByID (w http.ResponseWriter, req *http.Request) {
+func (app *TodoServer) GetTaskByID(w http.ResponseWriter, req *http.Request) {
     params := mux.Vars(req)
     id, err := strconv.ParseUint(params["id"], 10, 64)
     if err != nil {
@@ -127,7 +129,7 @@ func (app *TodoServer) GetTaskByID (w http.ResponseWriter, req *http.Request) {
     httpResponse(w, resultJson, http.StatusOK)
 }
 
-func (app *TodoServer) ModifyTask (w http.ResponseWriter, req *http.Request) {
+func (app *TodoServer) ModifyTask(w http.ResponseWriter, req *http.Request) {
     var newTask Task
 
     err := json.NewDecoder(req.Body).Decode(&newTask)
@@ -160,7 +162,7 @@ func (app *TodoServer) ModifyTask (w http.ResponseWriter, req *http.Request) {
     httpResponse(w, resultJson, http.StatusOK)
 }
 
-func (app *TodoServer) DeleteTaskByID (w http.ResponseWriter, req *http.Request)  {
+func (app *TodoServer) DeleteTaskByID(w http.ResponseWriter, req *http.Request)  {
     params := mux.Vars(req)
     id, err := strconv.ParseUint(params["id"], 10, 64)
     if err != nil {
