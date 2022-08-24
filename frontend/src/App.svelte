@@ -34,7 +34,6 @@ async function handleDelete(id: number){
 async function handleSubmit(){
   const todoItem = {
     title: newTaskTitle,
-    id: Date.now(),
     completed: false
   };
 

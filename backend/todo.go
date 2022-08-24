@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -121,11 +122,7 @@ func (app *TodoServer) AddTask(w http.ResponseWriter, req *http.Request) {
         return
     }
 
-    _, isExist := app.dbIsExist(newTask.ID)
-    if isExist {
-        http.Error(w, fmt.Sprintf(IDExists, newTask.ID), http.StatusConflict)
-        return
-    }
+    newTask.ID = uint64(time.Now().UnixMilli())
 
     err = app.db.Create(&newTask).Error
     if err != nil {
@@ -233,7 +230,7 @@ func middleware(h http.Handler) http.Handler {
 }
 
 func validateTaskFields(t *Task) error {
-    if t.ID == 0 || len(t.Title) == 0 {
+    if len(t.Title) == 0 {
         return errors.New(BadRequest)
     }
     return nil
