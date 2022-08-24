@@ -15,12 +15,16 @@ jobs:
         go-version: 1.18
 
     - name: Run unit testing
-      run: go test *.go
+      run: |
+        cd backend
+        go test *.go
 
     - name: Build and push docker image
       uses: mr-smithers-excellent/docker-build-push@v5
       with:
         image: islamwalid/todo-api
         registry: docker.io
+        directory: backend
+        dockerfile: backend/Dockerfile
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}

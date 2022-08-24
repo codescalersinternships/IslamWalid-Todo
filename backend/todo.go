@@ -5,9 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -21,7 +23,7 @@ const (
     IDNotFound = "Task with ID %d was not found\n"
     BadRequest = "Request is not valid\n"
 
-    dbFile = "DB_FILE.db"
+    DBFile = "DB_FILE.db"
 )
 
 type TodoServer struct {
@@ -36,18 +38,38 @@ type Task struct {
 }
 
 func main() {
-    app := TodoServer{
-    	dbFilePath: dbFile,
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = Port
+    } else {
+        port = ":" + port
     }
+
+    dbFile := os.Getenv("DB_FILE")
+    if dbFile == "" {
+        dbFile = DBFile
+    }
+
+    app := TodoServer{
+    	dbFilePath: DBFile,
+    }
+    c := cors.AllowAll()
     router := mux.NewRouter()
     err := app.InitDB()
 
     if err != nil {
-        panic(err)
+        fmt.Fprintf(os.Stderr, err.Error())
+        os.Exit(1)
     }
 
+    server := &http.Server{
+    	Addr:              Port,
+    	Handler:           c.Handler(router),
+    }
+
+    router.Use()
     app.RegisterHandlers(router)
-    http.ListenAndServe(Port, router)
+    server.ListenAndServe()
 }
 
 func (app *TodoServer) InitDB() error {
@@ -61,11 +83,15 @@ func (app *TodoServer) InitDB() error {
 }
 
 func (app *TodoServer) RegisterHandlers(router *mux.Router) {
-    router.HandleFunc("/todo", app.GetAllTasks).Methods("GET")
-    router.HandleFunc("/todo", app.AddTask).Methods("POST")
-    router.HandleFunc("/todo", app.ModifyTask).Methods("PATCH")
-    router.HandleFunc("/todo/{id}", app.GetTaskByID).Methods("GET")
-    router.HandleFunc("/todo/{id}", app.DeleteTaskByID).Methods("DELETE")
+    router.HandleFunc("/todo", app.GetAllTasks).Methods(http.MethodGet)
+
+    router.HandleFunc("/todo", app.AddTask).Methods(http.MethodPost)
+
+    router.HandleFunc("/todo", app.ModifyTask).Methods(http.MethodPatch)
+
+    router.HandleFunc("/todo/{id}", app.GetTaskByID).Methods(http.MethodGet)
+
+    router.HandleFunc("/todo/{id}", app.DeleteTaskByID).Methods(http.MethodDelete)
 }
 
 func (app *TodoServer) GetAllTasks(w http.ResponseWriter, req *http.Request) {
@@ -195,9 +221,15 @@ func (app *TodoServer) dbIsExist(id uint64) (*Task, bool) {
 }
 
 func httpResponse(w http.ResponseWriter, data []byte, statusCode int)  {
-    w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(statusCode)
     w.Write(data)
+}
+
+func middleware(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println(r.Method)
+		h.ServeHTTP(w, r)
+	})
 }
 
 func validateTaskFields(t *Task) error {
