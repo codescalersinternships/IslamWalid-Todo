@@ -85,13 +85,9 @@ func (app *TodoServer) InitDB() error {
 
 func (app *TodoServer) RegisterHandlers(router *mux.Router) {
     router.HandleFunc("/todo", app.GetAllTasks).Methods(http.MethodGet)
-
     router.HandleFunc("/todo", app.AddTask).Methods(http.MethodPost)
-
     router.HandleFunc("/todo", app.ModifyTask).Methods(http.MethodPatch)
-
     router.HandleFunc("/todo/{id}", app.GetTaskByID).Methods(http.MethodGet)
-
     router.HandleFunc("/todo/{id}", app.DeleteTaskByID).Methods(http.MethodDelete)
 }
 

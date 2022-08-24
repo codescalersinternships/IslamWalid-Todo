@@ -14,11 +14,6 @@ jobs:
       with:
         go-version: 1.18
 
-    - name: Run unit testing
-      run: |
-        cd backend
-        go test *.go
-
     - name: Build and push docker image
       uses: mr-smithers-excellent/docker-build-push@v5
       with:
