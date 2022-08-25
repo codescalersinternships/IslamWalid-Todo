@@ -218,13 +218,6 @@ func httpResponse(w http.ResponseWriter, data []byte, statusCode int)  {
     w.Write(data)
 }
 
-func middleware(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(r.Method)
-		h.ServeHTTP(w, r)
-	})
-}
-
 func validateTaskFields(t *Task) error {
     if len(t.Title) == 0 {
         return errors.New(BadRequest)
