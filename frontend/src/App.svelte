@@ -53,8 +53,8 @@ async function handleSubmit(){
 <main>
   <h1>todo app</h1>
   <div class="tasks">
-    <form on:submit|preventDefault={handleSubmit}>
-      <input bind:value={newTaskTitle} class="enter" type="text" placeholder="What to be done?" />
+    <form name='form' on:submit|preventDefault={handleSubmit}>
+      <input name='task' bind:value={newTaskTitle} class="enter" type="text" placeholder="What to be done?" />
     </form>
     {#each tasks as t }
       <Task {handleDelete} task={t} />

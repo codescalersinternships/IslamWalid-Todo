@@ -18,11 +18,11 @@
 </script>
 
 <div class="task">
-  <button class='btn {task.completed? "btn-done":""}' on:click={handleDone} ></button>
+  <button name={task.title + "-toggle"} class='btn {task.completed? "btn-done":""}' on:click={handleDone} ></button>
   <div class="p--contianer">
     <p class={ task.completed? "text-done" :"" }>{task.title}</p>
   </div>
-  <button on:click={handleDelete(task.id)}>Delete</button>
+  <button name={task.title + "-delete"} on:click={handleDelete(task.id)}>Delete</button>
 </div>
 
 <style>
