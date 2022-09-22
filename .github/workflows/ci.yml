@@ -1,4 +1,4 @@
-name: Todo tests
+name: Todo app ci
 
 on:
   push:
