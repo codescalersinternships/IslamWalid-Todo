@@ -1,0 +1,40 @@
+name: Todo app ci
+
+on:
+  push:
+    branches: [ development ]
+
+jobs:
+  code_testing:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: install golang
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.18
+
+    - name: Unit test
+      run: |
+        cd backend
+        go test *.go
+
+    - name: Build and push backend docker image
+      uses: mr-smithers-excellent/docker-build-push@v5
+      with:
+        image: islamwalid/todo-api
+        registry: docker.io
+        directory: backend
+        dockerfile: backend/Dockerfile
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and push frontend docker image
+      uses: mr-smithers-excellent/docker-build-push@v5
+      with:
+        image: islamwalid/todo-front
+        registry: docker.io
+        directory: frontend
+        dockerfile: frontend/Dockerfile
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}

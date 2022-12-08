@@ -1,0 +1,16 @@
+version: "3"
+services:
+  todo-backend:
+    build: ./backend
+    container_name: todo-api
+    ports:
+      - target: 8080
+        published: 8080
+  todo-frontend:
+    build: ./frontend
+    container_name: todo-frontend
+    ports:
+      - target: 8000
+        published: 8000
+    depends_on:
+      - todo-backend

@@ -1,0 +1,235 @@
+{
+	"info": {
+		"_postman_id": "37afd574-55a8-476a-b4e9-f1a02cd13eb0",
+		"name": "Todo Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22364791"
+	},
+	"item": [
+		{
+			"name": "Get all tasks",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/todo",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"todo"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get existing task by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/todo/1",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"todo",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get non existing task by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/todo/50",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"todo",
+						"50"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get task by invalid ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/todo/badID",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"todo",
+						"badID"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add new task",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": 1,\n    \"title\": \"make the bed\",\n    \"completed\": false\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/todo",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"todo"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add existing task",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": 1,\n    \"title\": \"make the bed\",\n    \"completed\": false\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/todo",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"todo"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add task with bad input format",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "bad JSON syntax",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/todo",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"todo"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit exiting task",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": 1,\n    \"title\": \"tidy the bed\",\n    \"completed\": true\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/todo",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"todo"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit non existing task",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": 100,\n    \"title\": \"tidy the bed\",\n    \"completed\": true\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "Edit non existing task",
+					"host": [
+						"Edit non existing task"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete existing task by ID",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/todo/1",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"todo",
+						"1"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
